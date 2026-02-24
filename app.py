@@ -43,7 +43,6 @@ def webhook():
 
     chat_id         = message["chat"]["id"]
     mensaje_entrada = message["text"].strip()
-    # Prefijo telegram_ para distinguirlo de WhatsApp en Supabase
     numero_usuario  = f"telegram_{message['from']['id']}"
 
     if not mensaje_entrada:
@@ -71,6 +70,11 @@ def webhook():
         if not tarea or not fecha_hora:
             continue
 
+        # Rechazar fechas incompletas
+        if len(fecha_hora) < 19:
+            logger.warning(f"Fecha incompleta ignorada: '{fecha_hora}'")
+            continue
+
         try:
             if accion == "GUARDAR":
                 guardar_recordatorio(supabase, u_id, tarea, fecha_hora)
@@ -95,6 +99,7 @@ def webhook():
     # 4. Responder al usuario
     enviar_mensaje_telegram(chat_id, respuesta_final)
     return "OK", 200
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
