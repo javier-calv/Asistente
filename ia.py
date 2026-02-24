@@ -1,7 +1,7 @@
 import os
 import logging
 import datetime
-from datetime import timezone, timedelta
+import pytz
 from google import genai
 from google.api_core import exceptions as google_exceptions
 from dotenv import load_dotenv
@@ -45,18 +45,27 @@ REGLAS DE HORA (cuando el usuario no especifica hora exacta):
 - "en la tarde" → 15:00:00
 - "en la noche" → 19:00:00\
 """
-def procesar_mensaje_completo(texto_usuario: str) -> dict:
+
+def procesar_mensaje_completo(texto_usuario: str, user_timezone: str = "America/Bogota") -> dict:
     rapido = detectar_consulta_rapida(texto_usuario)
     if rapido:
         return rapido
 
-    ahora = datetime.datetime.now()  # hora local Colombia
+    # Hora actual en la zona horaria del usuario
+    try:
+        tz = pytz.timezone(user_timezone)
+    except Exception:
+        tz = pytz.timezone("America/Bogota")
+
+    ahora = datetime.datetime.now(tz)
 
     prompt = (
         f"{_SYSTEM_PROMPT}\n\n"
+        f"Zona horaria del usuario: {user_timezone}\n"
         f"Fecha actual: {ahora:%Y-%m-%d} | Hora actual: {ahora:%H:%M:%S}\n"
         f"Mensaje del usuario: {texto_usuario}"
     )
+
     try:
         response = client.models.generate_content(
             model=MODEL_NAME,

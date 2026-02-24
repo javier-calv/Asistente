@@ -44,18 +44,19 @@ def webhook():
     chat_id         = message["chat"]["id"]
     mensaje_entrada = message["text"].strip()
     numero_usuario  = f"telegram_{message['from']['id']}"
+    language_code   = message["from"].get("language_code", "co")
 
     if not mensaje_entrada:
         return "OK", 200
 
-    # 1. Identificar usuario
-    u_id = obtener_o_crear_usuario(supabase, numero_usuario)
+    # 1. Identificar usuario y obtener su zona horaria
+    u_id, user_timezone = obtener_o_crear_usuario(supabase, numero_usuario, language_code)
     if not u_id:
         enviar_mensaje_telegram(chat_id, "Hubo un problema identificándote. Intenta de nuevo. 🙏")
         return "OK", 200
 
-    # 2. Una sola llamada a Gemini (o fast reply)
-    resultado       = procesar_mensaje_completo(mensaje_entrada)
+    # 2. Una sola llamada a Gemini con zona horaria del usuario
+    resultado       = procesar_mensaje_completo(mensaje_entrada, user_timezone)
     instrucciones   = resultado["instrucciones"]
     respuesta_final = resultado["respuesta"]
 
