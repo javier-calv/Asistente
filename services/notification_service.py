@@ -9,14 +9,12 @@ logger = logging.getLogger(__name__)
 def formatear_fecha(fecha_str: str) -> str:
     try:
         fecha = datetime.fromisoformat(fecha_str)
-        # Si tiene zona horaria, convertir a Colombia
+        # Solo convertir si tiene zona horaria (viene de Supabase con +00)
         if fecha.tzinfo is not None:
-            from datetime import timezone, timedelta
             fecha = fecha.astimezone(timezone(timedelta(hours=-5)))
         return fecha.strftime("%d/%m/%Y a las %I:%M %p")
     except Exception:
         return fecha_str
-    
 def enviar_whatsapp(numero_destino: str, mensaje: str) -> bool:
     """
     Envía un mensaje de WhatsApp via Twilio al usuario.
