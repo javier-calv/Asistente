@@ -78,6 +78,7 @@ def webhook():
 
         try:
             if accion == "GUARDAR":
+                logger.info(f"Guardando: '{tarea}' para '{fecha_hora}'")
                 guardar_recordatorio(supabase, u_id, tarea, fecha_hora)
 
             elif accion == "ELIMINAR":
