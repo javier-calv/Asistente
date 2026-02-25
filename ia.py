@@ -51,21 +51,23 @@ def procesar_mensaje_completo(texto_usuario: str, user_timezone: str = "America/
     if rapido:
         return rapido
 
-    # Hora actual en la zona horaria del usuario
     try:
         tz = pytz.timezone(user_timezone)
     except Exception:
         tz = pytz.timezone("America/Bogota")
 
-    ahora = datetime.datetime.now(tz)
+    ahora_local = datetime.datetime.now(tz)
+    ahora_utc   = datetime.datetime.now(pytz.utc)
 
     prompt = (
         f"{_SYSTEM_PROMPT}\n\n"
         f"Zona horaria del usuario: {user_timezone}\n"
-        f"Fecha actual: {ahora:%Y-%m-%d} | Hora actual: {ahora:%H:%M:%S}\n"
+        f"Hora local del usuario: {ahora_local:%Y-%m-%d %H:%M:%S}\n"
+        f"Hora UTC ahora: {ahora_utc:%Y-%m-%d %H:%M:%S}\n"
+        f"IMPORTANTE: Guarda SIEMPRE en UTC. Convierte la hora del usuario a UTC antes de guardar.\n"
+        f"Ejemplo: si usuario dice '8pm' en Europe/Madrid (UTC+1), guarda '19:00:00' UTC.\n"
         f"Mensaje del usuario: {texto_usuario}"
     )
-
     try:
         response = client.models.generate_content(
             model=MODEL_NAME,

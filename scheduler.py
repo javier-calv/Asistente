@@ -8,14 +8,13 @@ from services.notification_service import (
     obtener_recordatorios_pendientes,
     marcar_como_notificado,
     enviar_whatsapp,
-    formatear_fecha,
-    enviar_telegram
+    enviar_telegram,
+    formatear_fecha
 )
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 
 def verificar_y_notificar():
@@ -33,20 +32,22 @@ def verificar_y_notificar():
                 logger.warning(f"Recordatorio {r['id']} sin usuario, saltando.")
                 continue
 
-            identificador = usuarios.get("user_phone")
+            identificador  = usuarios.get("user_phone")
+            user_timezone  = usuarios.get("timezone", "America/Bogota")
+
             if not identificador:
                 logger.warning(f"Recordatorio {r['id']} sin identificador, saltando.")
                 continue
 
-            tarea   = r["task_description"]
-            hora    = formatear_fecha(r["execution_time"])
+            tarea  = r["task_description"]
+            hora   = formatear_fecha(r["execution_time"], user_timezone)
+
             mensaje = (
                 f"🔔 *Recordatorio*\n"
                 f"📌 {tarea}\n"
                 f"🕐 {hora}"
             )
 
-            # Detectar canal por prefijo
             if identificador.startswith("telegram_"):
                 chat_id = identificador.replace("telegram_", "")
                 enviado = enviar_telegram(chat_id, mensaje)
