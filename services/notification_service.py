@@ -9,9 +9,14 @@ logger = logging.getLogger(__name__)
 def formatear_fecha(fecha_str: str) -> str:
     try:
         fecha = datetime.fromisoformat(fecha_str)
-        # Solo convertir si tiene zona horaria (viene de Supabase con +00)
-        if fecha.tzinfo is not None:
-            fecha = fecha.astimezone(timezone(timedelta(hours=-5)))
+        # Forzar conversión directa a UTC-5 sin depender del TZ del servidor
+        utc_offset = fecha.utcoffset()
+        if utc_offset is not None:
+            fecha_utc = fecha.replace(tzinfo=timezone.utc) - utc_offset
+            fecha = fecha_utc - timedelta(hours=0)  # ya está en UTC
+            fecha = fecha.replace(tzinfo=None) 
+            # Restar 5 horas para Colombia
+            fecha = fecha - timedelta(hours=5)
         return fecha.strftime("%d/%m/%Y a las %I:%M %p")
     except Exception:
         return fecha_str
