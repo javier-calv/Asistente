@@ -9,18 +9,17 @@ logger = logging.getLogger(__name__)
 
 
 def formatear_fecha(fecha_str: str, user_timezone: str = "America/Bogota") -> str:
-    """
-    Convierte fecha UTC de Supabase a la zona horaria del usuario.
-    """
     try:
-        fecha = datetime.fromisoformat(fecha_str)
-        # Si no tiene zona horaria asumir UTC
-        if fecha.tzinfo is None:
-            fecha = fecha.replace(tzinfo=pytz.utc)
+        # Normalizar formato con T o sin T
+        fecha_str = fecha_str.replace("T", " ").split("+")[0].strip()
+        fecha = datetime.strptime(fecha_str, "%Y-%m-%d %H:%M:%S")
+        # Asumir que viene en UTC
+        fecha = pytz.utc.localize(fecha)
         tz = pytz.timezone(user_timezone)
         fecha_local = fecha.astimezone(tz)
         return fecha_local.strftime("%d/%m/%Y a las %I:%M %p")
-    except Exception:
+    except Exception as e:
+        logger.error(f"Error formateando fecha '{fecha_str}': {e}")
         return fecha_str
 
 
